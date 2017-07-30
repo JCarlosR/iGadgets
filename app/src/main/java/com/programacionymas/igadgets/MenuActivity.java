@@ -16,6 +16,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.programacionymas.igadgets.ui.fragment.InitialFragment;
+import com.programacionymas.igadgets.ui.fragment.OffTopMatrixFragment;
+import com.programacionymas.igadgets.ui.fragment.OffTopProductsFragment;
+import com.programacionymas.igadgets.ui.TopMatrixFragment;
 import com.programacionymas.igadgets.ui.TopProductsFragment;
 
 public class MenuActivity extends AppCompatActivity
@@ -28,15 +32,6 @@ public class MenuActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "¿Tienes dudas? Pronto podrás chatear con nosotros el tiempo real.", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -45,6 +40,10 @@ public class MenuActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        // Initial fragment
+        Fragment initialFragment = new InitialFragment();
+        startFragmentTransaction(initialFragment);
     }
 
     @Override
@@ -85,27 +84,35 @@ public class MenuActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
         Fragment fragment = null;
 
         if (id == R.id.nav_products) {
 
-        } else if (id == R.id.nav_top_products) {
+        } else if (id == R.id.nav_off_top_products) {
+            fragment = new OffTopProductsFragment();
+        } else if (id == R.id.nav_off_top_hours) {
+            fragment = new OffTopMatrixFragment();
+        }
+        else if (id == R.id.nav_top_products) {
             fragment = new TopProductsFragment();
         } else if (id == R.id.nav_top_hours) {
-
+            fragment = new TopMatrixFragment();
         }
 
         if (fragment != null) {
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-            transaction.replace(R.id.content_panel, fragment);
-            transaction.commit();
+            startFragmentTransaction(fragment);
         }
-
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void startFragmentTransaction(final Fragment fragment) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.content_panel, fragment);
+        transaction.commit();
     }
 
 }

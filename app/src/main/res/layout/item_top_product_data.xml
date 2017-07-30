@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    card_view:cardUseCompatPadding="true"
+    card_view:cardElevation="4dp"
+    card_view:cardCornerRadius="3dp"
+    android:layout_margin="6dp">
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="6dp"
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/tvProduct"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@android:style/TextAppearance"
+            android:text="Smart Watch X" />
+
+        <TextView
+            android:id="@+id/tvPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Representa el 14.56 %"/>
+
+        <TextView
+            android:id="@+id/tvQuantity"
+            android:textColor="@color/colorPrimaryDark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+            android:text="Recibió 56 clics" />
+
+    </LinearLayout>
+
+</android.support.v7.widget.CardView>

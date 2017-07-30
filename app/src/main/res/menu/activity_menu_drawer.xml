@@ -8,7 +8,20 @@
             android:title="Ver productos" />
     </group>
 
-    <item android:title="Reportes">
+    <item android:title="Reportes Offline">
+        <menu>
+            <item
+                android:id="@+id/nav_off_top_products"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Top de productos" />
+            <item
+                android:id="@+id/nav_off_top_hours"
+                android:icon="@drawable/ic_menu_send"
+                android:title="Matriz de horas pico" />
+        </menu>
+    </item>
+
+    <item android:title="Reportes Online">
         <menu>
             <item
                 android:id="@+id/nav_top_products"
