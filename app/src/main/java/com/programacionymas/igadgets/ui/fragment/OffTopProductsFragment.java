@@ -15,13 +15,19 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.programacionymas.igadgets.R;
+import com.programacionymas.igadgets.common.Global;
+import com.programacionymas.igadgets.common.InternetConnection;
 import com.programacionymas.igadgets.io.MyApiAdapter;
+import com.programacionymas.igadgets.io.response.TopProductData;
 import com.programacionymas.igadgets.io.response.TopProductsResponse;
 import com.programacionymas.igadgets.ui.DatePickerFragment;
 import com.programacionymas.igadgets.ui.adapter.TopProductAdapter;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import io.realm.Realm;
+import io.realm.RealmResults;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -33,8 +39,12 @@ public class OffTopProductsFragment extends Fragment implements View.OnClickList
     private RecyclerView recyclerView;
     private TopProductAdapter mAdapter;
 
+    // track last request params
+    private String startDate, endDate, top;
+
+    private boolean internetAvailable;
+
     public OffTopProductsFragment() {
-        // Required empty public constructor
     }
 
 
@@ -55,6 +65,30 @@ public class OffTopProductsFragment extends Fragment implements View.OnClickList
         Button btnGenerateReport = v.findViewById(R.id.btnGenerateReport);
         btnGenerateReport.setOnClickListener(this);
 
+        setupRecyclerView(v);
+
+        // Initialize Realm
+        Realm.init(getContext());
+
+        internetAvailable = InternetConnection.checkConnection(getContext());
+        if (! internetAvailable) {
+            final String startDate = Global.getStringFromGlobalPreferences(getContext(), "offProducts_startDate");
+            final String endDate = Global.getStringFromGlobalPreferences(getContext(), "offProducts_endDate");
+            final String top = Global.getStringFromGlobalPreferences(getContext(), "offProducts_top");
+
+            etStartDate.setText(startDate);
+            etEndDate.setText(endDate);
+            etTop.setText(top);
+
+            etStartDate.setEnabled(false);
+            etEndDate.setEnabled(false);
+            etTop.setEnabled(false);
+        }
+
+        return v;
+    }
+
+    private void setupRecyclerView(final View v) {
         recyclerView = v.findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
 
@@ -63,8 +97,6 @@ public class OffTopProductsFragment extends Fragment implements View.OnClickList
 
         mAdapter = new TopProductAdapter();
         recyclerView.setAdapter(mAdapter);
-
-        return v;
     }
 
     @Override
@@ -79,15 +111,32 @@ public class OffTopProductsFragment extends Fragment implements View.OnClickList
                 break;
 
             case R.id.btnGenerateReport:
-                fetchAndGenerateReport();
+                if (internetAvailable)
+                    fetchAndGenerateReport();
+                else {
+                    readAndGenerateOfflineReport();
+                }
                 break;
         }
     }
 
+    private void readAndGenerateOfflineReport() {
+        // Get a Realm instance for this thread
+        Realm realm = Realm.getDefaultInstance();
+
+        // Query Realm for all objects of this class
+        final RealmResults<TopProductData> results
+                = realm.where(TopProductData.class).findAll();
+
+        List<TopProductData> unmanagedObjects = realm.copyFromRealm(results);
+        ArrayList<TopProductData> dataSet = new ArrayList<>(unmanagedObjects);
+        mAdapter.setDataSet(dataSet);
+    }
+
     private void fetchAndGenerateReport() {
-        String startDate = etStartDate.getText().toString();
-        String endDate = etEndDate.getText().toString();
-        final String top = etTop.getText().toString();
+        startDate = etStartDate.getText().toString();
+        endDate = etEndDate.getText().toString();
+        top = etTop.getText().toString();
 
         if (startDate.isEmpty() || endDate.isEmpty() || top.isEmpty()) {
             Toast.makeText(getContext(), R.string.error_empty_fields, Toast.LENGTH_SHORT).show();
@@ -102,6 +151,21 @@ public class OffTopProductsFragment extends Fragment implements View.OnClickList
 
         Call<TopProductsResponse> call = MyApiAdapter.getApiService().getTopProductsData(startDate, endDate, top);
         call.enqueue(this);
+
+    }
+
+    private void offlineSave(ArrayList<TopProductData> pairs) {
+        Global.saveStringGlobalPreference(getContext(), "offProducts_startDate", startDate);
+        Global.saveStringGlobalPreference(getContext(), "offProducts_endDate", endDate);
+        Global.saveStringGlobalPreference(getContext(), "offProducts_top", top);
+
+        // Get a Realm instance for this thread
+        Realm realm = Realm.getDefaultInstance();
+
+        // Persist your data in a transaction
+        realm.beginTransaction();
+        realm.copyToRealm(pairs); // Persist un-managed objects
+        realm.commitTransaction();
     }
 
     private void showDatePickerDialog(final EditText etTarget) {
@@ -124,10 +188,13 @@ public class OffTopProductsFragment extends Fragment implements View.OnClickList
     public void onResponse(Call<TopProductsResponse> call, Response<TopProductsResponse> response) {
         if (response.isSuccessful()) {
             TopProductsResponse topProducts = response.body();
-            ArrayList<TopProductsResponse.TopProductData> pairs = topProducts.getPairs();
+            ArrayList<TopProductData> pairs = topProducts.getPairs();
 
             // Toast.makeText(getContext(), "Productos obtenidos => " + pairs.size(), Toast.LENGTH_SHORT).show();
             mAdapter.setDataSet(pairs);
+
+            // store last request in offline mode
+            offlineSave(pairs);
         }
     }
 

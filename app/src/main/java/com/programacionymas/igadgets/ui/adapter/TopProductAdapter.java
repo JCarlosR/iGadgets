@@ -7,13 +7,13 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.programacionymas.igadgets.R;
-import com.programacionymas.igadgets.io.response.TopProductsResponse;
+import com.programacionymas.igadgets.io.response.TopProductData;
 
 import java.util.ArrayList;
 
 public class TopProductAdapter extends RecyclerView.Adapter<TopProductAdapter.ViewHolder> {
 
-    private ArrayList<TopProductsResponse.TopProductData> mDataSet;
+    private ArrayList<TopProductData> mDataSet;
 
     // Obtener referencias de los componentes visuales
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -32,7 +32,7 @@ public class TopProductAdapter extends RecyclerView.Adapter<TopProductAdapter.Vi
         mDataSet = new ArrayList<>();
     }
 
-    public void setDataSet(ArrayList<TopProductsResponse.TopProductData> topProductsDataSet) {
+    public void setDataSet(ArrayList<TopProductData> topProductsDataSet) {
         this.mDataSet = topProductsDataSet;
         notifyDataSetChanged();
     }
@@ -52,7 +52,7 @@ public class TopProductAdapter extends RecyclerView.Adapter<TopProductAdapter.Vi
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
 
-        TopProductsResponse.TopProductData productData = mDataSet.get(position);
+        TopProductData productData = mDataSet.get(position);
 
         holder.tvProduct.setText(productData.getProduct());
         holder.tvQuantity.setText("Recibió " + productData.getQuantity() + " clics.");

@@ -41,6 +41,7 @@
             android:layout_height="wrap_content"
             android:inputType="date"
             android:focusable="false"
+            android:imeOptions="actionDone"
             android:clickable="true"
             android:maxLines="1" />
     </android.support.design.widget.TextInputLayout>
