@@ -2,19 +2,19 @@ package com.programacionymas.igadgets.io.response;
 
 import com.google.gson.annotations.SerializedName;
 
-public class TopMatrixHour {
+import io.realm.RealmObject;
+
+public class TopMatrixHour extends RealmObject {
 
 /*
 {"q":0,"p":0}
 */
 
     @SerializedName("q")
-    private
-    int quantity;
+    private int quantity;
 
     @SerializedName("p")
-    private
-    String percentage;
+    private String percentage;
 
     public int getQuantity() {
         return quantity;

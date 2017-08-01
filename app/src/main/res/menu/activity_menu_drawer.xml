@@ -8,7 +8,7 @@
             android:title="Ver productos" />
     </group>
 
-    <item android:title="Reportes Offline">
+    <item android:title="Reportes JSON">
         <menu>
             <item
                 android:id="@+id/nav_off_top_products"
@@ -21,7 +21,7 @@
         </menu>
     </item>
 
-    <item android:title="Reportes Online">
+    <item android:title="Reportes Web">
         <menu>
             <item
                 android:id="@+id/nav_top_products"

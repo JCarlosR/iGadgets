@@ -14,14 +14,21 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.programacionymas.igadgets.R;
+import com.programacionymas.igadgets.common.Global;
+import com.programacionymas.igadgets.common.InternetConnection;
 import com.programacionymas.igadgets.io.MyApiAdapter;
+import com.programacionymas.igadgets.io.response.TopMatrixDay;
 import com.programacionymas.igadgets.io.response.TopMatrixHour;
 import com.programacionymas.igadgets.io.response.TopProductsResponse;
 import com.programacionymas.igadgets.ui.DatePickerFragment;
 import com.programacionymas.igadgets.ui.adapter.TopMatrixAdapter;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import io.realm.Realm;
+import io.realm.RealmList;
+import io.realm.RealmResults;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -34,18 +41,14 @@ public class OffTopMatrixFragment extends Fragment implements View.OnClickListen
     private RecyclerView recyclerView;
     private TopMatrixAdapter mAdapter;
 
+    // track last request params
+    private String startDate, endDate, top;
+
+    private boolean internetAvailable;
+
     public OffTopMatrixFragment() {
         // Required empty public constructor
     }
-
-    /*public static OffTopMatrixFragment newInstance(String param1, String param2) {
-        OffTopMatrixFragment fragment = new OffTopMatrixFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }*/
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -69,6 +72,27 @@ public class OffTopMatrixFragment extends Fragment implements View.OnClickListen
         Button btnGenerateReport = view.findViewById(R.id.btnGenerateReport);
         btnGenerateReport.setOnClickListener(this);
 
+        setupRecyclerView(view);
+
+        // Initialize Realm
+        Realm.init(getContext());
+
+        internetAvailable = InternetConnection.checkConnection(getContext());
+        if (! internetAvailable) {
+            final String startDate = Global.getStringFromGlobalPreferences(getContext(), "offMatrix_startDate");
+            final String endDate = Global.getStringFromGlobalPreferences(getContext(), "offMatrix_endDate");
+
+            etStartDate.setText(startDate);
+            etEndDate.setText(endDate);
+
+            etStartDate.setEnabled(false);
+            etEndDate.setEnabled(false);
+        }
+
+        return view;
+    }
+
+    private void setupRecyclerView(final View view) {
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
 
@@ -77,9 +101,6 @@ public class OffTopMatrixFragment extends Fragment implements View.OnClickListen
 
         mAdapter = new TopMatrixAdapter();
         recyclerView.setAdapter(mAdapter);
-
-
-        return view;
     }
 
     @Override
@@ -94,14 +115,34 @@ public class OffTopMatrixFragment extends Fragment implements View.OnClickListen
                 break;
 
             case R.id.btnGenerateReport:
-                fetchAndGenerateReport();
+                if (internetAvailable)
+                    fetchAndGenerateReport();
+                else {
+                    readAndGenerateOfflineReport();
+                }
                 break;
         }
     }
 
+    private void readAndGenerateOfflineReport() {
+        Realm realm = Realm.getDefaultInstance();
+
+        // Query Realm for all objects of this class
+        final RealmResults<TopMatrixDay> results
+                = realm.where(TopMatrixDay.class).findAll();
+
+        // From TopMatrixDay to TopMatrixHours (ArrayList with 2 dimensions)
+        ArrayList<ArrayList<TopMatrixHour>> matrixDataSet = new ArrayList<>();
+        for (TopMatrixDay matrixDay : results) {
+            List<TopMatrixHour> listMatrixDay = realm.copyFromRealm(matrixDay.getHours());
+            matrixDataSet.add(new ArrayList<>(listMatrixDay));
+        }
+        mAdapter.setDataSet(matrixDataSet);
+    }
+
     private void fetchAndGenerateReport() {
-        String startDate = etStartDate.getText().toString();
-        String endDate = etEndDate.getText().toString();
+        startDate = etStartDate.getText().toString();
+        endDate = etEndDate.getText().toString();
 
         if (startDate.isEmpty() || endDate.isEmpty()) {
             Toast.makeText(getContext(), R.string.error_empty_fields, Toast.LENGTH_SHORT).show();
@@ -141,11 +182,30 @@ public class OffTopMatrixFragment extends Fragment implements View.OnClickListen
 
             // Toast.makeText(getContext(), "Productos obtenidos => " + pairs.size(), Toast.LENGTH_SHORT).show();
             mAdapter.setDataSet(topMatrixResponse);
+            offlineSave(topMatrixResponse);
         }
     }
 
     @Override
     public void onFailure(Call<ArrayList<ArrayList<TopMatrixHour>>> call, Throwable t) {
         Toast.makeText(getContext(), R.string.retrofit_on_failure, Toast.LENGTH_SHORT).show();
+    }
+
+    private void offlineSave(ArrayList<ArrayList<TopMatrixHour>> matrix) {
+        Global.saveStringGlobalPreference(getContext(), "offMatrix_startDate", startDate);
+        Global.saveStringGlobalPreference(getContext(), "offMatrix_endDate", endDate);
+
+        // Get a Realm instance for this thread
+        Realm realm = Realm.getDefaultInstance();
+
+        // Persist your data in a transaction
+        realm.beginTransaction();
+        realm.delete(TopMatrixDay.class);
+        for (ArrayList<TopMatrixHour> matrixHours : matrix) {
+            TopMatrixDay matrixDay = new TopMatrixDay();
+            matrixDay.setHours(new RealmList<>(matrixHours.toArray(new TopMatrixHour[matrixHours.size()])));
+            realm.copyToRealm(matrixDay);
+        }
+        realm.commitTransaction();
     }
 }

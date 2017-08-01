@@ -151,7 +151,6 @@ public class OffTopProductsFragment extends Fragment implements View.OnClickList
 
         Call<TopProductsResponse> call = MyApiAdapter.getApiService().getTopProductsData(startDate, endDate, top);
         call.enqueue(this);
-
     }
 
     private void offlineSave(ArrayList<TopProductData> pairs) {
@@ -164,6 +163,7 @@ public class OffTopProductsFragment extends Fragment implements View.OnClickList
 
         // Persist your data in a transaction
         realm.beginTransaction();
+        realm.delete(TopProductData.class);
         realm.copyToRealm(pairs); // Persist un-managed objects
         realm.commitTransaction();
     }
