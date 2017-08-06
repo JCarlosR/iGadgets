@@ -11,7 +11,7 @@ import retrofit2.http.Query;
 
 public interface MyApiService {
 
-    @GET("top/productos/data")
+    @GET("top/products/source")
     Call<TopProductsResponse> getTopProductsData(
             @Query("start_date") String startDate, @Query("end_date") String endDate,
             @Query("top") String top

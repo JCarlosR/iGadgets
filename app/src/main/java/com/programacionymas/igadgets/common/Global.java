@@ -3,8 +3,17 @@ package com.programacionymas.igadgets.common;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.v7.app.AlertDialog;
 
 public class Global {
+
+    public static void showMessageDialog(Context context, String title, String message) {
+        AlertDialog.Builder adb = new AlertDialog.Builder(context);
+        adb.setTitle(title);
+        adb.setMessage(message);
+        adb.setPositiveButton("Ok", null);
+        adb.show();
+    }
 
     public static void saveIntGlobalPreference(Context context, String key, int value) {
         SharedPreferences sharedPref = context.getSharedPreferences("global_preferences", Context.MODE_PRIVATE);

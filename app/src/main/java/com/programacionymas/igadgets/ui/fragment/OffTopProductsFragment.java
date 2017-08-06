@@ -153,7 +153,7 @@ public class OffTopProductsFragment extends Fragment implements View.OnClickList
         call.enqueue(this);
     }
 
-    private void offlineSave(ArrayList<TopProductData> pairs) {
+    private void offlineSave(ArrayList<TopProductData> products) {
         Global.saveStringGlobalPreference(getContext(), "offProducts_startDate", startDate);
         Global.saveStringGlobalPreference(getContext(), "offProducts_endDate", endDate);
         Global.saveStringGlobalPreference(getContext(), "offProducts_top", top);
@@ -164,7 +164,7 @@ public class OffTopProductsFragment extends Fragment implements View.OnClickList
         // Persist your data in a transaction
         realm.beginTransaction();
         realm.delete(TopProductData.class);
-        realm.copyToRealm(pairs); // Persist un-managed objects
+        realm.copyToRealm(products); // Persist un-managed objects
         realm.commitTransaction();
     }
 
@@ -188,13 +188,13 @@ public class OffTopProductsFragment extends Fragment implements View.OnClickList
     public void onResponse(Call<TopProductsResponse> call, Response<TopProductsResponse> response) {
         if (response.isSuccessful()) {
             TopProductsResponse topProducts = response.body();
-            ArrayList<TopProductData> pairs = topProducts.getPairs();
+            ArrayList<TopProductData> products = topProducts.getProducts();
 
-            // Toast.makeText(getContext(), "Productos obtenidos => " + pairs.size(), Toast.LENGTH_SHORT).show();
-            mAdapter.setDataSet(pairs);
+            // Toast.makeText(getContext(), "Productos obtenidos => " + products.size(), Toast.LENGTH_SHORT).show();
+            mAdapter.setDataSet(products);
 
             // store last request in offline mode
-            offlineSave(pairs);
+            offlineSave(products);
         }
     }
 

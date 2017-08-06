@@ -2,18 +2,16 @@ package com.programacionymas.igadgets.io.response;
 
 import java.util.ArrayList;
 
-import io.realm.RealmObject;
-
 public class TopProductsResponse {
 
-    private ArrayList<TopProductData> pairs; // product and quantity
+    private ArrayList<TopProductData> products; // product and quantity
 
-    public ArrayList<TopProductData> getPairs() {
-        return pairs;
+    public ArrayList<TopProductData> getProducts() {
+        return products;
     }
 
-    public void setPairs(ArrayList<TopProductData> pairs) {
-        this.pairs = pairs;
+    public void setProducts(ArrayList<TopProductData> products) {
+        this.products = products;
     }
 
 }
